@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese to English Voice Translator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        body.dark {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        body.dark .container {
+            background: #1e1e2e;
+            color: #e0e0e0;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
+        }
+
+        body.dark .header h1 {
+            color: #e0e0e0;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+            transition: color 0.3s ease;
+        }
+
+        body.dark .header p {
+            color: #b0b0b0;
+        }
+
+        .quick-help {
+            background: rgba(255,255,255,0.1);
+            transition: background 0.3s ease;
+        }
+
+        body.dark .quick-help {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .step-indicators {
+            transition: color 0.3s ease;
+        }
+
+        body.dark .step-indicators {
+            color: #a0a0a0;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .audio-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 0.9em;
+            min-width: 120px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #f44336, #da190b);
+            color: white;
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #2196F3, #0b7dda);
+            color: white;
+        }
+
+        .btn-audio {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+            color: white;
+        }
+
+        .btn-theme {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            min-width: auto;
+        }
+
+        body.dark .btn-theme {
+            background: linear-gradient(135deg, #ffc107, #ff8f00);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .status.listening {
+            background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+            color: #2e7d32;
+            border: 2px solid #4caf50;
+        }
+
+        .status.stopped {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            color: #c62828;
+            border: 2px solid #f44336;
+        }
+
+        .status.idle {
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+            color: #424242;
+            border: 2px solid #9e9e9e;
+        }
+
+        .translation-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .text-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        body.dark .text-section {
+            background: #2a2a3e;
+            border-color: #404040;
+        }
+
+        .text-section h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.3em;
+            transition: color 0.3s ease;
+        }
+
+        body.dark .text-section h3 {
+            color: #d0d0d0;
+        }
+
+        .text-content {
+            min-height: 100px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            font-size: 1.1em;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        body.dark .text-content {
+            background: #1a1a2a;
+            border-color: #505050;
+            color: #e0e0e0;
+        }
+
+        .japanese-text {
+            font-family: 'Yu Gothic', 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+        }
+
+        .quality-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 4px 8px;
+            font-size: 0.75em;
+            font-weight: bold;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        body.dark .quality-badge {
+            background: rgba(30, 30, 46, 0.9);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        .quality-excellent { color: #2e7d32; border-color: #4caf50; }
+        .quality-good { color: #f57c00; border-color: #ff9800; }
+        .quality-fair { color: #f57c00; border-color: #ff9800; }
+        .quality-poor { color: #c62828; border-color: #f44336; }
+
+        .confidence-display {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        body.dark .confidence-display {
+            color: #b0b0b0;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .error {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            color: #c62828;
+            border: 2px solid #f44336;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .history {
+            margin-top: 30px;
+        }
+
+        .history h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        body.dark .history h3 {
+            color: #e0e0e0;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        body.dark .history-item {
+            background: #2a2a3e;
+            border-left-color: #9c88ff;
+        }
+
+        .history-jp {
+            font-family: 'Yu Gothic', 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+            margin-bottom: 5px;
+            color: #495057;
+            transition: color 0.3s ease;
+        }
+
+        body.dark .history-jp {
+            color: #d0d0d0;
+        }
+
+        .history-en {
+            color: #6c757d;
+            font-style: italic;
+            transition: color 0.3s ease;
+            padding-right: 80px;
+        }
+
+        body.dark .history-en {
+            color: #a0a0a0;
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .translation-box {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .controls, .audio-controls {
+                gap: 10px;
+            }
+            
+            .btn {
+                min-width: 120px;
+                padding: 12px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button id="themeBtn" class="btn btn-theme">🌙 Dark Mode</button>
+        
+        <div class="header">
+            <h1>🎌 Japanese Translator</h1>
+            <p>Speak in Japanese and get instant English translation</p>
+            <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.9em;" class="quick-help">
+                <strong>📝 Permission Tip:</strong> Click "Allow" → Check "Remember this decision" → Never asked again! If no checkbox appears, bookmark this page after allowing.
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" class="btn btn-start">🎤 Start Listening</button>
+            <button id="stopBtn" class="btn btn-stop" disabled>⏹️ Stop</button>
+            <button id="clearBtn" class="btn btn-clear">🗑️ Clear</button>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 20px; font-size: 0.85em; color: #666;" class="step-indicators">
+            <span style="background: rgba(76,175,80,0.1); padding: 4px 8px; border-radius: 15px; margin: 0 5px;">
+                1️⃣ Allow microphone access
+            </span>
+            <span style="background: rgba(33,150,243,0.1); padding: 4px 8px; border-radius: 15px; margin: 0 5px;">
+                2️⃣ Click Start Listening
+            </span>
+            <span style="background: rgba(156,39,176,0.1); padding: 4px 8px; border-radius: 15px; margin: 0 5px;">
+                3️⃣ Speak Japanese clearly
+            </span>
+        </div>
+
+        <div class="audio-controls">
+            <button id="speakBtn" class="btn btn-audio btn-small" disabled>🔊 Speak Translation</button>
+            <button id="autoSpeakBtn" class="btn btn-audio btn-small">🔄 Auto-Speak: OFF</button>
+            <button id="stopSpeakBtn" class="btn btn-audio btn-small" disabled>⏸️ Stop Speech</button>
+        </div>
+
+        <div class="audio-controls">
+            <label for="confidenceSlider" style="color: #666; margin-right: 10px;">Speech Confidence: </label>
+            <input type="range" id="confidenceSlider" min="0.5" max="1.0" step="0.1" value="0.7" style="margin-right: 10px;">
+            <span id="confidenceValue">70%</span>
+        </div>
+
+        <div id="status" class="status idle">Click "Start Listening" to begin</div>
+        <div id="error" class="error"></div>
+
+        <div class="translation-box">
+            <div class="text-section">
+                <h3>🇯🇵 Japanese</h3>
+                <div id="japaneseText" class="text-content japanese-text">
+                    <div style="color: #999; font-style: italic;">
+                        Try saying: "こんにちは" (Hello) or "ありがとう" (Thank you)
+                    </div>
+                </div>
+            </div>
+            <div class="text-section">
+                <h3>🇺🇸 English Translation</h3>
+                <div id="englishText" class="text-content">
+                    <div style="color: #999; font-style: italic;">
+                        English translation will appear here with quality indicator
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="history">
+            <h3>Translation History</h3>
+            <div id="historyContainer">
+                <p style="text-align: center; color: #666;">No translations yet</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let translator;
+        
+        class JapaneseTranslator {
+            constructor() {
+                this.recognition = null;
+                this.isListening = false;
+                this.translationHistory = [];
+                this.currentTranslation = '';
+                this.autoSpeak = false;
+                this.speechSynthesis = window.speechSynthesis;
+                this.currentUtterance = null;
+                this.confidenceThreshold = 0.7;
+                this.contextBuffer = [];
+                this.maxContextSize = 5;
+                this.mediaStream = null;
+                this.microphonePermissionGranted = false; // Track permission status
+                
+                // Get DOM elements
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.clearBtn = document.getElementById('clearBtn');
+                this.speakBtn = document.getElementById('speakBtn');
+                this.autoSpeakBtn = document.getElementById('autoSpeakBtn');
+                this.stopSpeakBtn = document.getElementById('stopSpeakBtn');
+                this.themeBtn = document.getElementById('themeBtn');
+                this.confidenceSlider = document.getElementById('confidenceSlider');
+                this.confidenceValue = document.getElementById('confidenceValue');
+                this.status = document.getElementById('status');
+                this.error = document.getElementById('error');
+                this.japaneseText = document.getElementById('japaneseText');
+                this.englishText = document.getElementById('englishText');
+                this.historyContainer = document.getElementById('historyContainer');
+                
+                this.init();
+            }
+            
+            init() {
+                console.log('Initializing translator...');
+                
+                // Enhanced browser compatibility checks
+                const compatibility = this.checkBrowserCompatibility();
+                if (!compatibility.canRun) {
+                    this.showError(compatibility.errorMessage);
+                    return;
+                }
+                
+                if (compatibility.warnings.length > 0) {
+                    console.warn('Browser compatibility warnings:', compatibility.warnings);
+                }
+                
+                this.setupSpeechRecognition();
+                this.setupSpeechSynthesis();
+                this.setupEventListeners();
+                this.loadTheme();
+                this.checkExistingPermissions(); // Check if we already have permission
+                
+                console.log('Translator initialized successfully');
+            }
+            
+            checkExistingPermissions() {
+                try {
+                    // Check if microphone permission is already granted
+                    navigator.permissions.query({ name: 'microphone' }).then(permissionStatus => {
+                        if (permissionStatus.state === 'granted') {
+                            console.log('Microphone permission already granted');
+                            this.microphonePermissionGranted = true;
+                            this.updateStatus('idle', '✅ Microphone ready - Click "Start Listening" to begin');
+                            
+                            // Don't request new stream if we already have one or are already listening
+                            if (!this.mediaStream && !this.isListening) {
+                                this.preInitializeStream();
+                            }
+                        } else if (permissionStatus.state === 'denied') {
+                            this.showError('🚫 Microphone access is blocked. Please click the microphone icon 🎤 in your browser address bar and allow access.');
+                        }
+                        
+                        // Listen for permission changes
+                        permissionStatus.addEventListener('change', () => {
+                            if (permissionStatus.state === 'granted') {
+                                this.microphonePermissionGranted = true;
+                                this.hideError();
+                                this.updateStatus('idle', '✅ Microphone ready - Click "Start Listening" to begin');
+                            }
+                        });
+                    }).catch(error => {
+                        console.log('Permission API query failed, will check on start');
+                    });
+                    
+                } catch (error) {
+                    console.log('Permission API not supported, will check on start');
+                }
+            }
+            
+            async preInitializeStream() {
+                try {
+                    this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true,
+                            sampleRate: 48000
+                        }
+                    });
+                    console.log('Media stream pre-initialized successfully');
+                } catch (streamError) {
+                    console.log('Could not pre-initialize stream:', streamError);
+                }
+            }
+            
+            checkBrowserCompatibility() {
+                const result = {
+                    canRun: true,
+                    errorMessage: '',
+                    warnings: []
+                };
+                
+                // Check critical APIs
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    result.canRun = false;
+                    result.errorMessage = 'Speech recognition is not supported. Please use Chrome, Edge, or Safari.';
+                    return result;
+                }
+                
+                if (!('speechSynthesis' in window)) {
+                    result.warnings.push('Speech synthesis may not work properly');
+                } else if (!window.speechSynthesis.getVoices) {
+                    result.warnings.push('Speech synthesis voices may not be available');
+                }
+                
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    result.warnings.push('Microphone access may not work in this browser');
+                }
+                
+                if (typeof fetch === 'undefined') {
+                    result.canRun = false;
+                    result.errorMessage = 'This browser is too old. Please update your browser.';
+                    return result;
+                }
+                
+                // Check if running in secure context (required for microphone)
+                if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                    result.warnings.push('HTTPS required for microphone access in production');
+                }
+                
+                return result;
+            }
+            
+            setupSpeechRecognition() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                this.recognition = new SpeechRecognition();
+                
+                this.recognition.continuous = true;
+                this.recognition.interimResults = true;
+                this.recognition.lang = 'ja-JP';
+                this.recognition.maxAlternatives = 3;
+                
+                // Add abort handling
+                this.abortTimeout = null;
+                this.restartAttempts = 0;
+                this.maxRestartAttempts = 5;
+                
+                this.recognition.onstart = () => {
+                    console.log('Speech recognition started');
+                    this.isListening = true;
+                    this.restartAttempts = 0;
+                    this.updateStatus('listening', '🎤 Listening... Speak in Japanese');
+                    this.startBtn.disabled = true;
+                    this.stopBtn.disabled = false;
+                    this.hideError();
+                    
+                    if (this.abortTimeout) {
+                        clearTimeout(this.abortTimeout);
+                        this.abortTimeout = null;
+                    }
+                };
+                
+                this.recognition.onresult = (event) => {
+                    this.restartAttempts = 0;
+                    
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+                    let confidence = 0;
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const result = event.results[i];
+                        const transcript = result[0].transcript;
+                        confidence = result[0].confidence || 0.8;
+                        
+                        if (result.isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    const displayText = finalTranscript || interimTranscript;
+                    if (displayText.trim()) {
+                        if (finalTranscript) {
+                            this.japaneseText.innerHTML = `
+                                <div style="padding-right: 60px;">${displayText}</div>
+                                <div class="confidence-display">Speech: ${Math.round(confidence * 100)}% confidence</div>
+                            `;
+                        } else {
+                            this.japaneseText.textContent = displayText;
+                        }
+                        
+                        if (finalTranscript.trim() && confidence >= this.confidenceThreshold) {
+                            this.translateText(finalTranscript.trim());
+                        } else if (finalTranscript.trim()) {
+                            this.updateStatus('listening', '⚠️ Low confidence - try speaking clearer');
+                        }
+                    }
+                };
+                
+                this.recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    
+                    switch(event.error) {
+                        case 'aborted':
+                            console.log('Speech recognition was aborted - attempting restart');
+                            if (this.isListening && this.restartAttempts < this.maxRestartAttempts) {
+                                this.restartAttempts++;
+                                setTimeout(() => {
+                                    if (this.isListening) {
+                                        this.restartRecognition();
+                                    }
+                                }, 1000);
+                            } else if (this.restartAttempts >= this.maxRestartAttempts) {
+                                this.showError('Speech recognition keeps failing. Please refresh the page and try again.');
+                                this.stop();
+                            }
+                            break;
+                            
+                        case 'no-speech':
+                            console.log('No speech detected - continuing to listen');
+                            break;
+                            
+                        case 'audio-capture':
+                            this.showError('No microphone found. Please check your microphone connection.');
+                            this.stop();
+                            break;
+                            
+                        case 'not-allowed':
+                            this.showError('Microphone permission denied. Please allow microphone access and try again.');
+                            this.stop();
+                            break;
+                            
+                        case 'network':
+                            this.showError('Network error. Please check your internet connection.');
+                            if (this.isListening && this.restartAttempts < this.maxRestartAttempts) {
+                                this.restartAttempts++;
+                                setTimeout(() => {
+                                    if (this.isListening) {
+                                        this.restartRecognition();
+                                    }
+                                }, 3000);
+                            }
+                            break;
+                            
+                        default:
+                            console.error('Unknown speech recognition error:', event.error);
+                            if (this.isListening && this.restartAttempts < this.maxRestartAttempts) {
+                                this.restartAttempts++;
+                                setTimeout(() => {
+                                    if (this.isListening) {
+                                        this.restartRecognition();
+                                    }
+                                }, 2000);
+                            } else {
+                                this.showError(`Speech recognition error: ${event.error}`);
+                                this.stop();
+                            }
+                    }
+                };
+                
+                this.recognition.onend = () => {
+                    console.log('Speech recognition ended');
+                    
+                    if (this.isListening && this.restartAttempts < this.maxRestartAttempts) {
+                        console.log('Attempting to restart speech recognition...');
+                        this.restartAttempts++;
+                        
+                        setTimeout(() => {
+                            if (this.isListening) {
+                                this.restartRecognition();
+                            }
+                        }, 500);
+                    } else if (this.restartAttempts >= this.maxRestartAttempts) {
+                        console.log('Max restart attempts reached');
+                        this.showError('Speech recognition stopped working. Please click "Start Listening" again.');
+                        this.stop();
+                    }
+                };
+            }
+            
+            restartRecognition() {
+                try {
+                    console.log(`Restarting speech recognition (attempt ${this.restartAttempts}/${this.maxRestartAttempts})`);
+                    
+                    if (this.recognition) {
+                        this.recognition.abort();
+                    }
+                    
+                    setTimeout(() => {
+                        if (this.isListening) {
+                            try {
+                                this.recognition.start();
+                            } catch (startError) {
+                                console.error('Failed to restart recognition:', startError);
+                                if (this.restartAttempts < this.maxRestartAttempts) {
+                                    this.restartAttempts++;
+                                    setTimeout(() => this.restartRecognition(), 1000);
+                                } else {
+                                    this.showError('Unable to restart speech recognition. Please try again manually.');
+                                    this.stop();
+                                }
+                            }
+                        }
+                    }, 100);
+                    
+                } catch (error) {
+                    console.error('Error during recognition restart:', error);
+                    if (this.restartAttempts < this.maxRestartAttempts) {
+                        setTimeout(() => this.restartRecognition(), 1000);
+                    } else {
+                        this.showError('Speech recognition failed to restart. Please refresh the page.');
+                        this.stop();
+                    }
+                }
+            }
+            
+            setupSpeechSynthesis() {
+                if (this.speechSynthesis.getVoices().length === 0) {
+                    this.speechSynthesis.addEventListener('voiceschanged', () => {
+                        console.log('Voices loaded:', this.speechSynthesis.getVoices().length);
+                    });
+                }
+            }
+            
+            setupEventListeners() {
+                console.log('Setting up event listeners...');
+                
+                // Ensure all elements exist before adding listeners
+                const elements = [
+                    { element: this.startBtn, name: 'startBtn', handler: () => this.start() },
+                    { element: this.stopBtn, name: 'stopBtn', handler: () => this.stop() },
+                    { element: this.clearBtn, name: 'clearBtn', handler: () => this.clear() },
+                    { element: this.speakBtn, name: 'speakBtn', handler: () => this.speakTranslation() },
+                    { element: this.autoSpeakBtn, name: 'autoSpeakBtn', handler: () => this.toggleAutoSpeak() },
+                    { element: this.stopSpeakBtn, name: 'stopSpeakBtn', handler: () => this.stopSpeaking() },
+                    { element: this.themeBtn, name: 'themeBtn', handler: () => this.toggleTheme() }
+                ];
+                
+                elements.forEach(({ element, name, handler }) => {
+                    if (element) {
+                        try {
+                            element.addEventListener('click', handler);
+                            console.log(`✓ ${name} event listener added`);
+                        } catch (error) {
+                            console.error(`✗ Failed to add ${name} event listener:`, error);
+                        }
+                    } else {
+                        console.error(`✗ ${name} element not found`);
+                    }
+                });
+                
+                // Confidence slider with error handling
+                if (this.confidenceSlider) {
+                    try {
+                        this.confidenceSlider.addEventListener('input', (e) => {
+                            try {
+                                this.confidenceThreshold = parseFloat(e.target.value);
+                                if (this.confidenceValue) {
+                                    this.confidenceValue.textContent = Math.round(this.confidenceThreshold * 100) + '%';
+                                }
+                            } catch (error) {
+                                console.error('Confidence slider error:', error);
+                            }
+                        });
+                        console.log('✓ Confidence slider event listener added');
+                    } catch (error) {
+                        console.error('✗ Failed to add confidence slider event listener:', error);
+                    }
+                } else {
+                    console.error('✗ Confidence slider not found');
+                }
+                
+                console.log('Event listeners setup complete');
+            }
+            
+            start() {
+                this.restartAttempts = 0;
+                
+                // Check if we're already listening (prevent duplicate requests)
+                if (this.isListening) {
+                    console.log('Already listening, no need to start again');
+                    return;
+                }
+                
+                // If we already have permission and stream, use it directly
+                if (this.microphonePermissionGranted && this.mediaStream) {
+                    console.log('Using existing microphone permission and stream');
+                    this.startRecognitionDirectly();
+                    return;
+                }
+                
+                // Only request new permission if we don't have it
+                if (!this.microphonePermissionGranted) {
+                    this.requestMicrophonePermission();
+                } else {
+                    // We have permission but no stream, get stream without asking
+                    this.getStreamSilently();
+                }
+            }
+            
+            requestMicrophonePermission() {
+                navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        sampleRate: 48000
+                    }
+                })
+                .then((stream) => {
+                    console.log('Microphone access granted');
+                    this.microphonePermissionGranted = true;
+                    this.mediaStream = stream;
+                    this.updateStatus('listening', '✅ Microphone access granted - Starting recognition...');
+                    this.startRecognitionDirectly();
+                })
+                .catch((e) => {
+                    console.error('Microphone access error:', e);
+                    if (e.name === 'NotAllowedError') {
+                        this.showError('🎤 Microphone access denied. Click the microphone icon 🎤 in your browser address bar and select "Always allow".');
+                    } else if (e.name === 'NotFoundError') {
+                        this.showError('❌ No microphone found. Please check your microphone connection.');
+                    } else {
+                        this.showError('⚠️ Microphone access failed: ' + e.message);
+                    }
+                });
+            }
+            
+            async getStreamSilently() {
+                try {
+                    // Get stream without triggering permission dialog (should be silent if permission exists)
+                    this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true,
+                            sampleRate: 48000
+                        }
+                    });
+                    console.log('Got media stream silently');
+                    this.startRecognitionDirectly();
+                } catch (error) {
+                    console.error('Failed to get stream silently:', error);
+                    this.requestMicrophonePermission();
+                }
+            }
+            
+            startRecognitionDirectly() {
+                try {
+                    if (this.recognition) {
+                        this.recognition.abort();
+                    }
+                    
+                    setTimeout(() => {
+                        try {
+                            this.recognition.start();
+                        } catch (startError) {
+                            console.error('Recognition start error:', startError);
+                            if (startError.name === 'InvalidStateError') {
+                                this.recognition.stop();
+                                setTimeout(() => {
+                                    try {
+                                        this.recognition.start();
+                                    } catch (retryError) {
+                                        this.showError('Failed to start speech recognition. Please try again.');
+                                    }
+                                }, 500);
+                            } else {
+                                this.showError('Failed to start speech recognition: ' + startError.message);
+                            }
+                        }
+                    }, 100);
+                    
+                } catch (error) {
+                    console.error('Setup error:', error);
+                    this.showError('Failed to initialize speech recognition: ' + error.message);
+                }
+            }
+            
+            stop() {
+                console.log('Stopping speech recognition...');
+                this.isListening = false;
+                this.restartAttempts = 0;
+                
+                if (this.abortTimeout) {
+                    clearTimeout(this.abortTimeout);
+                    this.abortTimeout = null;
+                }
+                
+                if (this.recognition) {
+                    try {
+                        this.recognition.abort();
+                        this.recognition.stop();
+                    } catch (error) {
+                        console.log('Error stopping recognition:', error);
+                    }
+                }
+                
+                this.updateStatus('stopped', '⏹️ Stopped listening');
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+            }
+            
+            clear() {
+                this.japaneseText.innerHTML = '<div style="color: #999; font-style: italic;">Speak in Japanese...</div>';
+                this.englishText.innerHTML = '<div style="color: #999; font-style: italic;">Translation will appear here...</div>';
+                this.translationHistory = [];
+                this.currentTranslation = '';
+                this.speakBtn.disabled = true;
+                this.updateHistory();
+                this.hideError();
+                this.stopSpeaking();
+            }
+            
+            translateText(text) {
+                this.englishText.innerHTML = '<div class="pulse">⚡ Translating...</div>';
+                
+                // Enhanced error handling with timeout
+                const translationTimeout = 15000; // 15 seconds max
+                
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Translation timeout')), translationTimeout);
+                });
+                
+                const fetchPromise = fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=${encodeURIComponent(text)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        return response.json();
+                    });
+                
+                Promise.race([fetchPromise, timeoutPromise])
+                    .then(data => {
+                        if (data && data[0] && data[0][0] && data[0][0][0]) {
+                            const translation = this.cleanTranslation(data[0][0][0]);
+                            
+                            this.englishText.innerHTML = `
+                                <div style="padding-right: 80px; padding-bottom: 10px;">
+                                    ${translation}
+                                </div>
+                                <div class="quality-badge quality-good">
+                                    <span>●</span>
+                                    <span>Good</span>
+                                </div>
+                            `;
+                            
+                            this.currentTranslation = translation;
+                            this.speakBtn.disabled = false;
+                            
+                            if (this.autoSpeak) {
+                                this.speakTranslation();
+                            }
+                            
+                            this.addToHistory(text, translation);
+                        } else {
+                            throw new Error('Invalid translation response');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Translation error:', error);
+                        let errorMessage = 'Translation failed. ';
+                        
+                        if (error.message === 'Translation timeout') {
+                            errorMessage += 'Request timed out. Please check your internet connection.';
+                        } else if (error.message.includes('HTTP')) {
+                            errorMessage += 'Translation service is temporarily unavailable.';
+                        } else if (error.message.includes('Failed to fetch')) {
+                            errorMessage += 'No internet connection. Please check your network.';
+                        } else {
+                            errorMessage += 'Please try again.';
+                        }
+                        
+                        this.englishText.innerHTML = `<div style="color: #c62828; font-style: italic;">${errorMessage}</div>`;
+                    });
+            }
+            
+            cleanTranslation(translation) {
+                // Clean and improve translation text
+                let cleaned = translation;
+                
+                // Fix common issues
+                cleaned = cleaned.replace(/\s+/g, ' ').trim(); // Clean whitespace
+                cleaned = cleaned.replace(/\bi\b/g, 'I'); // Capitalize I
+                cleaned = cleaned.replace(/^./, str => str.toUpperCase()); // Capitalize first letter
+                
+                // Remove artifacts
+                cleaned = cleaned.replace(/\[.*?\]/g, '').trim();
+                cleaned = cleaned.replace(/\(.*?\)/g, '').trim();
+                
+                return cleaned;
+            }
+            
+            addToHistory(japanese, english) {
+                this.translationHistory.unshift({
+                    japanese: japanese,
+                    english: english,
+                    quality: 85,
+                    qualityText: 'Good',
+                    timestamp: new Date()
+                });
+                
+                // Limit history size to prevent memory issues
+                if (this.translationHistory.length > 15) {
+                    this.translationHistory = this.translationHistory.slice(0, 15);
+                }
+                
+                this.updateHistory();
+            }
+            
+            speakTranslation() {
+                if (!this.currentTranslation) {
+                    this.showError('No translation to speak.');
+                    return;
+                }
+                
+                this.stopSpeaking();
+                
+                this.currentUtterance = new SpeechSynthesisUtterance(this.currentTranslation);
+                this.currentUtterance.lang = 'en-US';
+                this.currentUtterance.rate = 0.9;
+                this.currentUtterance.pitch = 1.0;
+                this.currentUtterance.volume = 1.0;
+                
+                const voices = this.speechSynthesis.getVoices();
+                const englishVoices = voices.filter(voice => 
+                    voice.lang.startsWith('en-') && 
+                    (voice.name.includes('Edge') || voice.name.includes('Natural') || voice.name.includes('Neural'))
+                );
+                
+                if (englishVoices.length > 0) {
+                    const preferredVoice = englishVoices.find(voice => 
+                        voice.name.includes('Edge') || voice.name.includes('Aria') || voice.name.includes('Jenny')
+                    ) || englishVoices[0];
+                    this.currentUtterance.voice = preferredVoice;
+                } else {
+                    const anyEnglishVoice = voices.find(voice => voice.lang.startsWith('en-'));
+                    if (anyEnglishVoice) {
+                        this.currentUtterance.voice = anyEnglishVoice;
+                    }
+                }
+                
+                this.currentUtterance.onstart = () => {
+                    this.stopSpeakBtn.disabled = false;
+                    this.speakBtn.disabled = true;
+                    this.updateStatus('listening', '🔊 Speaking translation...');
+                };
+                
+                this.currentUtterance.onend = () => {
+                    this.stopSpeakBtn.disabled = true;
+                    this.speakBtn.disabled = false;
+                    if (this.isListening) {
+                        this.updateStatus('listening', '🎤 Listening... Speak in Japanese');
+                    } else {
+                        this.updateStatus('idle', 'Click "Start Listening" to begin');
+                    }
+                };
+                
+                this.currentUtterance.onerror = (event) => {
+                    console.error('Speech synthesis error:', event.error);
+                    this.showError('Failed to speak translation: ' + event.error);
+                    this.stopSpeakBtn.disabled = true;
+                    this.speakBtn.disabled = false;
+                };
+                
+                this.speechSynthesis.speak(this.currentUtterance);
+            }
+            
+            stopSpeaking() {
+                if (this.speechSynthesis.speaking || this.speechSynthesis.pending) {
+                    this.speechSynthesis.cancel();
+                }
+                this.stopSpeakBtn.disabled = true;
+                this.speakBtn.disabled = false;
+                this.currentUtterance = null;
+            }
+            
+            toggleAutoSpeak() {
+                this.autoSpeak = !this.autoSpeak;
+                this.autoSpeakBtn.textContent = this.autoSpeak ? 
+                    '🔄 Auto-Speak: ON' : '🔄 Auto-Speak: OFF';
+                this.autoSpeakBtn.style.background = this.autoSpeak ? 
+                    'linear-gradient(135deg, #4CAF50, #45a049)' : 
+                    'linear-gradient(135deg, #9c27b0, #7b1fa2)';
+            }
+            
+            toggleTheme() {
+                document.body.classList.toggle('dark');
+                const isDark = document.body.classList.contains('dark');
+                this.themeBtn.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+                
+                // Safe localStorage usage with error handling
+                try {
+                    if (typeof localStorage !== 'undefined') {
+                        localStorage.setItem('darkMode', isDark);
+                    }
+                } catch (e) {
+                    console.log('Theme preference cannot be saved:', e.message);
+                    // Continue without saving - not a critical error
+                }
+            }
+            
+            loadTheme() {
+                try {
+                    if (typeof localStorage !== 'undefined') {
+                        const isDark = localStorage.getItem('darkMode') === 'true';
+                        if (isDark) {
+                            document.body.classList.add('dark');
+                            this.themeBtn.textContent = '☀️ Light Mode';
+                        }
+                    }
+                } catch (e) {
+                    console.log('Theme preference cannot be loaded:', e.message);
+                    // Continue with default theme - not a critical error
+                }
+            }
+            
+            updateHistory() {
+                if (this.translationHistory.length === 0) {
+                    this.historyContainer.innerHTML = '<p style="text-align: center; color: #666;">No translations yet</p>';
+                    return;
+                }
+                
+                const historyHTML = this.translationHistory
+                    .map(item => {
+                        const qualityClass = item.quality >= 95 ? 'quality-excellent' : 
+                                           item.quality >= 85 ? 'quality-good' : 
+                                           item.quality >= 75 ? 'quality-fair' : 'quality-poor';
+                        
+                        const qualityText = item.qualityText || 'Good';
+                        
+                        return `
+                        <div class="history-item">
+                            <div class="history-jp">${item.japanese}</div>
+                            <div class="history-en">
+                                ${item.english}
+                                <div class="quality-badge ${qualityClass}" style="position: absolute; top: 5px; right: 5px;">
+                                    <span>●</span>
+                                    <span>${qualityText}</span>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
+                
+                this.historyContainer.innerHTML = historyHTML;
+            }
+            
+            updateStatus(type, message) {
+                this.status.className = `status ${type}`;
+                this.status.textContent = message;
+            }
+            
+            showError(message) {
+                this.error.textContent = message;
+                this.error.style.display = 'block';
+            }
+            
+            hideError() {
+                this.error.style.display = 'none';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Verify DOM is ready
+                console.log('DOM loaded, initializing translator...');
+                
+                // Check if required elements exist
+                const requiredElements = [
+                    'startBtn', 'stopBtn', 'clearBtn', 'speakBtn', 'autoSpeakBtn', 
+                    'stopSpeakBtn', 'themeBtn', 'status', 'error', 'japaneseText', 
+                    'englishText', 'historyContainer'
+                ];
+                
+                const missing = requiredElements.filter(id => !document.getElementById(id));
+                if (missing.length > 0) {
+                    throw new Error(`Missing required elements: ${missing.join(', ')}`);
+                }
+                
+                translator = new JapaneseTranslator();
+                console.log('✓ Translator initialized successfully');
+                
+                // Additional runtime checks
+                setTimeout(() => {
+                    if (translator && translator.startBtn) {
+                        console.log('✓ Post-initialization verification passed');
+                    } else {
+                        console.error('✗ Post-initialization verification failed');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                console.error('✗ Failed to initialize translator:', error);
+                
+                // Display user-friendly error
+                const errorElement = document.getElementById('error');
+                if (errorElement) {
+                    errorElement.style.display = 'block';
+                    errorElement.textContent = `Initialization failed: ${error.message}. Please refresh the page.`;
+                } else {
+                    // Fallback if error element doesn't exist
+                    alert(`Failed to initialize translator: ${error.message}`);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+                    
